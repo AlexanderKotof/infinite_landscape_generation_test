@@ -138,12 +138,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   terrain: {fileID: 1396137595024031377}
-  height: 15
+  height: 5
   environmentPrefabs:
-  - {fileID: 2500808814206632194, guid: eaeb494d08a880248afb170afa396c7c, type: 3}
-  - {fileID: 7259516604909585238, guid: 939615d0fab00ee48ae2cb683cb5d9c5, type: 3}
-  heightTextures:
-  - texture: {fileID: 2800000, guid: d28e02df3c5ef774da891645758101aa, type: 3}
-    height: 0
-  - texture: {fileID: 2800000, guid: e4552138b8431a14da45f7e9193ed7d3, type: 3}
-    height: 0.5
+  - {fileID: 8644238280080244010, guid: 3c3bbac627206974da5178116c2405ec, type: 3}
+  - {fileID: 4749677441072790983, guid: 901a4b20cd4ec3e40aa545c24ae0b384, type: 3}
+  - {fileID: 4285617157084292019, guid: 24a46431f0106f848bab61b5073e7366, type: 3}
+  - {fileID: 647373600796157194, guid: 00c52b8eb86806441b4b7d7b903067f3, type: 3}
+  - {fileID: 4065036254738539052, guid: 4ccfb55e0a9df19489b1b738bbee3867, type: 3}
