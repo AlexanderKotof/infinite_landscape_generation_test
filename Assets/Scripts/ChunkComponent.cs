@@ -50,6 +50,8 @@ namespace Test
                 var y = heighMap[(int)((float)z / chunkSize * resolution), (int)((float)x / chunkSize * resolution)] * height;
 
                 go.transform.localPosition = new Vector3(x, y, z);
+
+                go.transform.rotation = Quaternion.AngleAxis(rnd.Next(0, 360), Vector3.up);
             }
         }
     }
