@@ -1,114 +1,87 @@
 using System.Collections.Generic;
 using System.Linq;
+using Test.Noise;
 using UnityEngine;
 
-public class LandscapeGenerator : MonoBehaviour
+namespace Test
 {
-    public int chunkSize = 16;
-    public int noiseResolution = 128;
-
-    public Transform player;
-
-    public ChunkComponent chunkPrefab;
-
-    public int seed;
-
-    private INoiseGenerator _generator;
-
-    private Dictionary<Vector2Int, ChunkComponent> _chunks = new Dictionary<Vector2Int, ChunkComponent>();
-
-    private readonly Vector2Int[] _checkChunksAround = new Vector2Int[]
+    public class LandscapeGenerator : MonoBehaviour
     {
-       Vector2Int.zero,
-       Vector2Int.up,
-       Vector2Int.down,
-       Vector2Int.right,
-       Vector2Int.left,
-       Vector2Int.one,
-       -Vector2Int.one,
-        new Vector2Int(-1, 1),
-        new Vector2Int(1, -1),
-    };
+        [SerializeField] private int _chunkSize = 16;
+        [SerializeField] private int _heightMapResolution = 128;
 
-    private void Awake()
-    {
-        _generator = new PerlinNoiseGenerator(noiseResolution, seed);
-    }
+        [SerializeField] private Transform _playerTransform;
 
-    public void CreateChunk(Vector2Int coord)
-    {
-        var pos3d = new Vector3Int(coord.x * chunkSize, 0, coord.y * chunkSize);
-        var chunk = Instantiate(chunkPrefab, pos3d, Quaternion.identity, transform);
+        [SerializeField] private ChunkComponent _chunkPrefab;
 
-        var noise = _generator.GenerateNoiseMap(coord.x, coord.y);
+        [SerializeField] private int _seed;
 
-        var rnd = new System.Random(seed + coord.x + coord.y * 1000);
-
-        chunk.Init(chunkSize, noiseResolution, noise, rnd);
-
-        _chunks[coord] = chunk;
-    }
-
-    private void RemoveChunk(Vector2Int coords)
-    {
-        var chank = _chunks[coords];
-
-        Destroy(chank.gameObject);
-
-        _chunks.Remove(coords);
-    }
-
-    private void Update()
-    {
-        var playerChunk = new Vector2Int(Mathf.FloorToInt(player.position.x / chunkSize), Mathf.FloorToInt(player.position.z / chunkSize));
-
-        foreach (var around in _checkChunksAround)
+        private INoiseGenerator _noiseGenerator;
+        private readonly Dictionary<Vector2Int, ChunkComponent> _chunksMap = new Dictionary<Vector2Int, ChunkComponent>();
+        private readonly Vector2Int[] _chunksAroundPlayerOffsets = new Vector2Int[]
         {
-            if (_chunks.ContainsKey(playerChunk + around))
-                continue;    
+            Vector2Int.zero,
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.right,
+            Vector2Int.left,
+            Vector2Int.one,
+            -Vector2Int.one,
+            new Vector2Int(-1, 1),
+            new Vector2Int(1, -1),
+        };
 
-            CreateChunk(playerChunk + around);
+        private void Awake()
+        {
+            _noiseGenerator = new PerlinNoiseGenerator(_heightMapResolution, _seed);
         }
-
-        var farChanks = _chunks.Keys.Where(x => (x - playerChunk).sqrMagnitude > 2).ToArray();
-        foreach(var chunk in farChanks)
+        private void Update()
         {
-            RemoveChunk(chunk);
-        }
-    }
-}
+            // Get chunk where player is
+            var playerChunk = new Vector2Int(Mathf.FloorToInt(_playerTransform.position.x / _chunkSize), Mathf.FloorToInt(_playerTransform.position.z / _chunkSize));
 
-public interface INoiseGenerator
-{
-    float[,] GenerateNoiseMap(int x, int y);
-}
-
-public class PerlinNoiseGenerator : INoiseGenerator
-{
-    private readonly int _resolution;
-    private readonly int _rnd;
-
-    public PerlinNoiseGenerator(int resolution, int seed)
-    {
-        _resolution = resolution;
-        _rnd = new System.Random(seed).Next(100);
-    }
-
-    public float[,] GenerateNoiseMap(int x, int y)
-    {
-        var noiseMap = new float[_resolution + 1, _resolution + 1];
-
-        for (int i = 0; i <= _resolution; i++)
-        {
-            for (int j = 0; j <= _resolution; j++)
+            // Foreach chunks arround player
+            foreach (var around in _chunksAroundPlayerOffsets)
             {
-                noiseMap[j, i] = Mathf.PerlinNoise(
-                    x + ((float)i / _resolution) + _rnd,
-                    y + ((float)j / _resolution) + _rnd
-                    );
+                var chunkCoord = playerChunk + around;
+                if (_chunksMap.ContainsKey(chunkCoord))
+                    continue;
+
+                CreateChunk(chunkCoord);
+            }
+
+            // Remove far chunks
+            var farChanks = _chunksMap.Keys.Where(x => (x - playerChunk).sqrMagnitude > 2).ToArray();
+            foreach (var chunk in farChanks)
+            {
+                RemoveChunk(chunk);
             }
         }
 
-        return noiseMap;
+        private void CreateChunk(Vector2Int coord)
+        {
+            // Calculate real chunk position
+            var pos3d = new Vector3Int(coord.x * _chunkSize, 0, coord.y * _chunkSize);
+            var chunk = Instantiate(_chunkPrefab, pos3d, Quaternion.identity, transform);
+
+            // Generate heights map
+            var heights = _noiseGenerator.GenerateNoiseMap(coord.x, coord.y);
+
+            // Initialize Random for current chunk
+            var rnd = new System.Random(_seed + coord.x + coord.y * 1000);
+
+            chunk.Init(_chunkSize, _heightMapResolution, heights, rnd);
+
+            _chunksMap[coord] = chunk;
+        }
+
+        private void RemoveChunk(Vector2Int coords)
+        {
+            var chank = _chunksMap[coords];
+
+            Destroy(chank.gameObject);
+
+            _chunksMap.Remove(coords);
+        }
     }
 }
