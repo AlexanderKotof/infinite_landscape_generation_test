@@ -2,7 +2,7 @@
 Task was to realize infinite landscape generation
 
 # Done tasks:
-Infinite landscape generation from chunks with adjustable size and resolution
+Infinite landscape generation from chunks with adjustable size, resolution and seed
 Generation of environment props
 Same generation result when return back
 Simple player movement
